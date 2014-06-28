@@ -1,6 +1,3 @@
-FlickPath
-=========
-This project is to create an Android app that calculates the distance traveled the device is flicked in a straight line
-from a standing start, finishing at rest. The calculation is done using only accelerometer data.
+Rainbow Shake
 
-The initial version of the app has a background that changes colour in response to the accelerometer readings.
+This app maps each of X, Y and Z axis of linear acceleration to an RGB colour channel then displays the final colour to the whole screen. The sensitivity is scaled to allow full white and full black to be displayed.
