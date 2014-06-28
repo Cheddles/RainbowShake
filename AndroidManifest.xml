@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="au.edu.asms.flicklength"
+    package="au.edu.asms.RainbowShake"
     android:versionCode="1"
     android:versionName="0.1" >
 

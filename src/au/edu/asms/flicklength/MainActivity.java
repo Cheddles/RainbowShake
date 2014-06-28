@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import au.edu.asms.RainbowShake.R;
 
 // Declare the main class (this is where the App starts running)
 //
