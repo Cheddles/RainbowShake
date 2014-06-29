@@ -103,7 +103,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 			  RelativeLayout view = (RelativeLayout)findViewById(R.id.view);
 			  
 //			Update the elapsed time if the timer is on
-			  if (timerOn=true){
+			  if (timerOn==true){
 				  totalTime=(SystemClock.elapsedRealtime()-timeStarted);
 		  	  }
 			  
@@ -159,7 +159,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 				
 //				set the on-screen time label to a new total acceleration value
 			    TextView time_label =(TextView)findViewById(R.id.textView2);
-				String timeString = String.valueOf(totalTime);
+				String timeString = String.valueOf(totalTime/1000);
 				time_label.setText(timeString);
 
 		  }
@@ -187,7 +187,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 	}
 	
 	public void StopTimer(View view) {
-		//do something when the sto button is pushed
+		//do something when the stop button is pushed
 		timerOn=false;
+		timeStarted=-SystemClock.elapsedRealtime();
 	}
 }
