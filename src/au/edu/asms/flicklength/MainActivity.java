@@ -12,6 +12,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +37,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 //	
 	private SensorManager senSensorManager;
 	private Sensor senAccelerometer;
+	double timeStarted;
+	double totalTime=0.0;
+	boolean timerOn=false;
 	
 	// The first method (or subroutine) within MainActivity is called Oncreate.
 	// This is run when the MainActivity is first created.
@@ -97,6 +101,12 @@ public class MainActivity extends Activity implements SensorEventListener{
 	public void onSensorChanged(SensorEvent event) {
 		  if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 			  RelativeLayout view = (RelativeLayout)findViewById(R.id.view);
+			  
+//			Update the elapsed time if the timer is on
+			  if (timerOn=true){
+				  totalTime=(SystemClock.elapsedRealtime()-timeStarted);
+		  	  }
+			  
 
 //			 Set an array of numbers to the accelerometer values ([0] for x, [1] for y and [2] for z) 
 			  float[] values = event.values;
@@ -142,10 +152,15 @@ public class MainActivity extends Activity implements SensorEventListener{
 //				calculate total acceleration
 			    double totalA = Math.pow((values[0] * values[0] + values[1] * values[1] + values[2] * values[2]),0.5);
 
-//				set the on-screen text label to a new total acceleration value
+//				set the on-screen acceleration label to a new total acceleration value
 			    TextView accel_label =(TextView)findViewById(R.id.textView1);
-				String newmessage = String.valueOf(values[2]);
+				String newmessage = String.valueOf(totalA);
 				accel_label.setText(newmessage);
+				
+//				set the on-screen time label to a new total acceleration value
+			    TextView time_label =(TextView)findViewById(R.id.textView2);
+				String timeString = String.valueOf(totalTime);
+				time_label.setText(timeString);
 
 		  }
 	}
@@ -163,5 +178,16 @@ public class MainActivity extends Activity implements SensorEventListener{
 	protected void onResume() {
 	    super.onResume();
 	    senSensorManager.registerListener(this, senAccelerometer, SensorManager.SENSOR_DELAY_UI);
+	}
+	
+	public void StartTimer(View view) {
+		// when the start button is pushed
+		timerOn=true;
+		timeStarted=SystemClock.elapsedRealtime();
+	}
+	
+	public void StopTimer(View view) {
+		//do something when the sto button is pushed
+		timerOn=false;
 	}
 }
