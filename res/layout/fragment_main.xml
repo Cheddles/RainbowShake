@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:text="@string/totalAcceleration"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:visibility="invisible" />
+        android:visibility="visible" />
     
     <TextView
         android:id="@+id/textView2"
@@ -27,7 +27,7 @@
         android:layout_marginTop="28dp"
         android:text="time goes here"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:visibility="invisible" />
+        android:visibility="visible" />
 
 
 <!--     <TextView -->
@@ -50,7 +50,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="22dp"
         android:onClick="StartTimer"
-        android:visibility="invisible"
+        android:visibility="visible"
         android:text="Start" />
 
     <Button
@@ -62,7 +62,7 @@
         android:layout_alignParentRight="true"
         android:layout_marginRight="34dp"
         android:onClick="StopTimer"
-        android:visibility="invisible"
+        android:visibility="visible"
         android:text="Stop" />
 
 </RelativeLayout>

@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import au.edu.asms.RainbowShake.R;
 
 // Declare the main class (this is where the App starts running)
@@ -37,9 +38,27 @@ public class MainActivity extends Activity implements SensorEventListener{
 //	
 	private SensorManager senSensorManager;
 	private Sensor senAccelerometer;
-	double timeStarted;
+	double timeStarted;				// when the start button was pushed
+	double timeMovementStarted;		// when motion is detected to have started.
 	double totalTime=0.0;
 	boolean timerOn=false;
+	boolean inMotion=false;
+	boolean inSlowDown=false;
+	
+	double averageAcceleration1;	// acceleration during initial rest phase
+	double averageAcceleration2;	// acceleration during second rest phase
+	double stabiliseTime=150;		// time (in milliseconds) that is left for the phone to physically stabilise following start before data collection begins.
+	double initialYCal=0.07;		// initial offset to use for y-axis acceleration
+	double Ycal;					// Y-axis calibration constant (calculated from initial rest period)
+	double accelThreshold=0.1;		// threshold below which movement is not assumed
+	long sampleCount;				// number of acceleration samples
+	double sumAccel;				// sum of acceleration samples
+	double SlowDownStarted;			// when did acceleration drop below threshold
+	double displacement=0;
+	double velocity=0;
+	double maxVelocity=0;
+	double lastTime;				//time of the previous accelerometer reading
+	
 	
 	// The first method (or subroutine) within MainActivity is called Oncreate.
 	// This is run when the MainActivity is first created.
@@ -52,7 +71,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 		
 		senSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 	    senAccelerometer = senSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-	    senSensorManager.registerListener(this, senAccelerometer , SensorManager.SENSOR_DELAY_UI);
+	    senSensorManager.registerListener(this, senAccelerometer , SensorManager.SENSOR_DELAY_FASTEST);
 		
 		if (savedInstanceState == null) {
 			getFragmentManager().beginTransaction()
@@ -101,15 +120,51 @@ public class MainActivity extends Activity implements SensorEventListener{
 	public void onSensorChanged(SensorEvent event) {
 		  if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 			  RelativeLayout view = (RelativeLayout)findViewById(R.id.view);
-			  
-//			Update the elapsed time if the timer is on
-			  if (timerOn==true){
-				  totalTime=(SystemClock.elapsedRealtime()-timeStarted);
-		  	  }
-			  
 
 //			 Set an array of numbers to the accelerometer values ([0] for x, [1] for y and [2] for z) 
 			  float[] values = event.values;
+
+			  totalTime=(SystemClock.elapsedRealtime()-timeStarted);
+			  
+//			If the timer has been running for at least the stabilisation time, process the acceleration
+			  if (timerOn==true && totalTime>stabiliseTime){
+				  if (inMotion==false && Math.abs(values[1]-initialYCal)<accelThreshold){ //still resting - calculate average acceleration for calibration
+					  sumAccel+=values[1];
+					  sampleCount++;
+				  }
+				  
+				  if (inMotion==false && Math.abs(values[1]-initialYCal)>=accelThreshold){ //motion started
+					  inMotion=true;
+					  Ycal=sumAccel/sampleCount;
+					  Toast.makeText(getApplicationContext(), "Motion started", Toast.LENGTH_SHORT).show();
+				  }
+				  
+				  if (inMotion==true){ //moving - update velocity and position
+					  velocity+=(values[1]-Ycal)*(SystemClock.elapsedRealtime()-lastTime)/1000;
+					  displacement+=velocity*(SystemClock.elapsedRealtime()-lastTime)/1000;
+					  if (Math.abs(velocity)>Math.abs(maxVelocity)){
+						  maxVelocity=velocity;
+					  }
+//						set the on-screen label to the current velocity
+					    TextView velocityLabel =(TextView)findViewById(R.id.textView2);
+						String LabelString = "Velocity: " + String.valueOf(velocity);
+						velocityLabel.setText(LabelString);
+					
+					inSlowDown=false;
+				  }
+				  
+				  if (inMotion==true && Math.abs(values[1]-Ycal)<=accelThreshold){ //slowing down
+					  inSlowDown=true;
+				  }
+				  
+				  if (inMotion==true && inSlowDown==true && (SystemClock.elapsedRealtime()-SlowDownStarted)>150){ //stopped
+					  inMotion=false;
+					  timerOn=false;
+					  Toast.makeText(getApplicationContext(), "Motion Stopped", Toast.LENGTH_SHORT).show();
+				  }
+		  	  }
+			  
+
 			  
 //				set the red colour intensity (0-255) mapped over a scale
 //				from -10m/s/s to 10m/s/s for x-axis acceleration
@@ -153,16 +208,17 @@ public class MainActivity extends Activity implements SensorEventListener{
 			    double totalA = Math.pow((values[0] * values[0] + values[1] * values[1] + values[2] * values[2]),0.5);
 
 //				set the on-screen acceleration label to a new total acceleration value
-			    TextView accel_label =(TextView)findViewById(R.id.textView1);
-				String newmessage = String.valueOf(totalA);
-				accel_label.setText(newmessage);
+			    TextView displacementLabel =(TextView)findViewById(R.id.textView1);
+				String newmessage = "Displacement: " + String.valueOf(displacement);
+				displacementLabel.setText(newmessage);
 				
-//				set the on-screen time label to a new total acceleration value
-			    TextView time_label =(TextView)findViewById(R.id.textView2);
-				String timeString = String.valueOf(totalTime/1000);
-				time_label.setText(timeString);
+//				set the on-screen label to the Maximum achieved velocity for the last run
+			    TextView velocityLabel =(TextView)findViewById(R.id.textView2);
+				String LabelString = "Max Vel: " + String.valueOf(maxVelocity);
+				velocityLabel.setText(LabelString);
 
 		  }
+		  lastTime=SystemClock.elapsedRealtime();
 	}
 
 	@Override
@@ -184,11 +240,16 @@ public class MainActivity extends Activity implements SensorEventListener{
 		// when the start button is pushed
 		timerOn=true;
 		timeStarted=SystemClock.elapsedRealtime();
+		velocity=0;
+		displacement=0;
+		inSlowDown=false;
+		Toast.makeText(getApplicationContext(), "Timer started", Toast.LENGTH_SHORT).show();
 	}
 	
 	public void StopTimer(View view) {
 		//do something when the stop button is pushed
 		timerOn=false;
 		timeStarted=-SystemClock.elapsedRealtime();
+		lastTime=SystemClock.elapsedRealtime();
 	}
 }
