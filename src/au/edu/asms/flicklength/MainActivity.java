@@ -160,8 +160,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 				  if (inMotion==true && inSlowDown==true && (SystemClock.elapsedRealtime()-SlowDownStarted)>150){ //stopped
 					  inMotion=false;
 					  timerOn=false;
-					  Toast.makeText(getApplicationContext(), "Motion Stopped", Toast.LENGTH_SHORT).show();
+					  maxVelocity=velocity;	//temp bugtracking
 				  }
+				  lastTime=SystemClock.elapsedRealtime();
 		  	  }
 			  
 
@@ -218,7 +219,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 				velocityLabel.setText(LabelString);
 
 		  }
-		  lastTime=SystemClock.elapsedRealtime();
+
 	}
 
 	@Override
